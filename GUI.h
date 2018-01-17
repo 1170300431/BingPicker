@@ -23,33 +23,33 @@ bool sortable = false;
 
 class form {
 private:
-	//ÎÑÒÑ¾­¾¡Á¿Ë½ÓĞÁËQAQ
+	//çªå·²ç»å°½é‡ç§æœ‰äº†QAQ
 	LPCSTR className;
 	LPCSTR title;
 	HWND hwnd;
 	unsigned int id;
 public:
-	//¹¹Ôì
+	//æ„é€ 
 	form() {}
 	form(char* className, char* title) {
 		this->title = title;
 		this->className = className;
 	}
-	//ÊôĞÔ
+	//å±æ€§
 	int brush = 0;
 	int x;
 	int y;
 	int w;
 	int h;
 	std::vector<void*> tab;
-	//·½·¨
+	//æ–¹æ³•
 	HWND hWnd() { return this->hwnd; };
 	bool create();
 	unsigned long long show();
 	void minimum() {
 		ShowWindow(hwnd, SW_SHOWMINNOACTIVE);
 	}
-	//ÊÂ¼ş
+	//äº‹ä»¶
 	void(*Event_On_Create)(form*) = NULL;
 	void(*Event_On_Unload)(form*) = NULL;
 	void(*Event_Load_Complete)(form*) = NULL;
@@ -71,7 +71,7 @@ bool form::create() {
 	if (!RegisterClassA(&wndclass)) {
 		char s[10];
 		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("×¢²áÀàÃûÊ§°Ü£¡"), s, MB_OK);
+		MessageBox(NULL, TEXT("æ³¨å†Œç±»åå¤±è´¥ï¼"), s, MB_OK);
 	}
 	id = (UINT)formSet.size();
 	formSet.push_back((void*)this);
@@ -80,7 +80,7 @@ bool form::create() {
 	{
 		char s[10];
 		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("´´½¨´°¿ÚÊ§°Ü£¡"), s, MB_OK);
+		MessageBox(NULL, TEXT("åˆ›å»ºçª—å£å¤±è´¥ï¼"), s, MB_OK);
 		UnregisterClassA(className, hi);
 		formSet.pop_back();
 		return false;
@@ -89,7 +89,7 @@ bool form::create() {
 	return true;
 }
 
-unsigned long long form::show() {				//ÔÚ´Ë´¦Ö÷³ÌĞò¹ÒÆğ
+unsigned long long form::show() {				//åœ¨æ­¤å¤„ä¸»ç¨‹åºæŒ‚èµ·
 	MSG msg;
 	ShowWindow(hwnd, SW_SHOW); UpdateWindow(hwnd);
 	ZeroMemory(&msg, sizeof(msg));
@@ -103,11 +103,11 @@ unsigned long long form::show() {				//ÔÚ´Ë´¦Ö÷³ÌĞò¹ÒÆğ
 	return msg.wParam;
 }
 
-class control {				//¼Ì³ĞÀà
+class control {				//ç»§æ‰¿ç±»
 private:
 	LPCSTR Name = "";
 public:
-	//ÊôĞÔ
+	//å±æ€§
 	int x;
 	int y;
 	int w;
@@ -116,11 +116,11 @@ public:
 	form* parent = NULL;
 	HWND hWnd = NULL;
 	unsigned int id;
-	//·½·¨
+	//æ–¹æ³•
 
-	//ĞéµÄ
+	//è™šçš„
 	virtual int create() = 0;
-	//ÊµµÄ
+	//å®çš„
 	LPCSTR name(LPCSTR newName = "") {
 		if (newName == "") return this->Name;
 		if(hWnd) SetWindowTextA(hWnd,newName);
@@ -173,7 +173,7 @@ int button::create() {
 	if (!hWnd) {
 		char s[10];
 		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("´´½¨°´Å¥Ê§°Ü£¡"), s, MB_OK);
+		MessageBox(NULL, TEXT("åˆ›å»ºæŒ‰é’®å¤±è´¥ï¼"), s, MB_OK);
 		return -1;
 	}
 	push(this);
@@ -213,7 +213,7 @@ int Textbox::create() {
 	if (!hWnd) {
 		char s[10];
 		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("´´½¨ÎÄ±¾¿òÊ§°Ü£¡"), s, MB_OK);
+		MessageBox(NULL, TEXT("åˆ›å»ºæ–‡æœ¬æ¡†å¤±è´¥ï¼"), s, MB_OK);
 		return -1;
 	}
 	push(this);
@@ -252,7 +252,7 @@ int Label::create() {
 	if (!hWnd) {
 		char s[10];
 		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("´´½¨±êÇ©¿òÊ§°Ü£¡"), s, MB_OK);
+		MessageBox(NULL, TEXT("åˆ›å»ºæ ‡ç­¾æ¡†å¤±è´¥ï¼"), s, MB_OK);
 		return -1;
 	}
 	push(this);
@@ -294,7 +294,7 @@ int Picture::create() {
 		if (!hbmp) {
 			char s[10];
 			_itoa_s(GetLastError(), s, 10);
-			MessageBox(NULL, TEXT("¶ÁÈ¡Î»Í¼Ê§°Ü£¡"), s, MB_OK);
+			MessageBox(NULL, TEXT("è¯»å–ä½å›¾å¤±è´¥ï¼"), s, MB_OK);
 			return -1;
 		}
 		HBITMAP holdmap = (HBITMAP)SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hbmp);
@@ -306,7 +306,7 @@ int Picture::create() {
 	else{
 		char s[10];
 		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("´´½¨Í¼Æ¬Ê§°Ü£¡"), s, MB_OK);
+		MessageBox(NULL, TEXT("åˆ›å»ºå›¾ç‰‡å¤±è´¥ï¼"), s, MB_OK);
 		return -1;
 	}
 	push(this);
@@ -376,7 +376,7 @@ int ProgressBar::create() {
 	if (!hWnd) {
 		char s[10];
 		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("´´½¨½ø¶ÈÌõÊ§°Ü£¡"), s, MB_OK);
+		MessageBox(NULL, TEXT("åˆ›å»ºè¿›åº¦æ¡å¤±è´¥ï¼"), s, MB_OK);
 		return -1;
 	}
 	push(this);
@@ -388,7 +388,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_CREATE:
-		//´´½¨ÊÂ¼şµÄË¼Â·»¹Ã»ÓĞÍ·Ğ÷¡£¡£ÔİÊ±¶ªµ½CreateWindowºóÃæÈ¥
+		//åˆ›å»ºäº‹ä»¶çš„æ€è·¯è¿˜æ²¡æœ‰å¤´ç»ªã€‚ã€‚æš‚æ—¶ä¸¢åˆ°CreateWindowåé¢å»
 		break;
 	case WM_COMMAND:
 		if (lParam)
@@ -409,12 +409,12 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		break;
-	case WM_CTLCOLORSTATIC://À¹½ØWM_CTLCOLORSTATICÏûÏ¢
+	case WM_CTLCOLORSTATIC://æ‹¦æˆªWM_CTLCOLORSTATICæ¶ˆæ¯
 	{
-		SetBkMode((HDC)wParam, TRANSPARENT);//ÉèÖÃ±³¾°Í¸Ã÷
+		SetBkMode((HDC)wParam, TRANSPARENT);//è®¾ç½®èƒŒæ™¯é€æ˜
 		std::vector<void*>::iterator p = find_if(formSet.begin(), formSet.end(), [hwnd](const void* x) -> bool {return hwnd == ((form*)x)->hWnd(); });
 		if(p != formSet.end()) 
-			return (INT_PTR)GetStockObject(((form*)(*p))->brush);//·µ»Ø¸¸´°»­Ë¢
+			return (INT_PTR)GetStockObject(((form*)(*p))->brush);//è¿”å›çˆ¶çª—ç”»åˆ·
 	}
 	case WM_CLOSE:
 		for (unsigned int i = 0; i < formSet.size(); i++) if (hwnd == ((form*)formSet[i])->hWnd()) {
