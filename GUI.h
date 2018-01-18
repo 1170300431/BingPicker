@@ -15,11 +15,9 @@
 extern HINSTANCE hi;
 LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-void* getControl(HWND hWnd);
-
-std::vector<void*> formSet;
-std::vector<void*> controls;
-bool sortable = false;
+static void* getControl(HWND formHwnd, HWND controlHwnd);
+static void* getForm(HWND hWnd);
+static std::vector<void*> formSet;
 
 class form {
 private:
@@ -44,10 +42,56 @@ public:
 	std::vector<void*> tab;
 	//方法
 	HWND hWnd() { return this->hwnd; };
-	bool create();
-	unsigned long long show();
+	//int create();
+	//unsigned long long show();
 	void minimum() {
 		ShowWindow(hwnd, SW_SHOWMINNOACTIVE);
+	}
+	int create() {
+		WNDCLASSA wndclass;
+		wndclass.style = CS_HREDRAW | CS_VREDRAW;
+		wndclass.lpfnWndProc = WinProc;
+		wndclass.cbClsExtra = 0;
+		wndclass.cbWndExtra = 0;
+		wndclass.hbrBackground = (HBRUSH)GetStockObject(brush);
+		wndclass.hCursor = LoadCursorA(NULL, IDC_ARROW);
+		wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+		wndclass.hInstance = hi;
+		wndclass.lpszClassName = className;
+		wndclass.lpszMenuName = NULL;
+		if (!RegisterClassA(&wndclass)) {
+			char s[10];
+			_itoa_s(GetLastError(), s, 10);
+			MessageBox(NULL, TEXT("注册类名失败！"), s, MB_OK);
+			return -1;
+		}
+		id = (UINT)formSet.size();
+		formSet.push_back((void*)this);
+		hwnd = CreateWindowA(className, title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hi, NULL);
+		if (!hwnd)
+		{
+			char s[10];
+			_itoa_s(GetLastError(), s, 10);
+			MessageBox(NULL, TEXT("创建窗口失败！"), s, MB_OK);
+			UnregisterClassA(className, hi);
+			formSet.pop_back();
+			return -1;
+		}
+		if (this->Event_On_Create) this->Event_On_Create(this);
+		return id;
+	}
+	unsigned long long show() {				//在此处主程序挂起
+		MSG msg;
+		ShowWindow(hwnd, SW_SHOW); UpdateWindow(hwnd);
+		ZeroMemory(&msg, sizeof(msg));
+		if (this->Event_Load_Complete) this->Event_Load_Complete(this);
+		while (GetMessage(&msg, hwnd, 0, 0)>0)
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		UnregisterClassA(className, hi);
+		return msg.wParam;
 	}
 	//事件
 	void(*Event_On_Create)(form*) = NULL;
@@ -56,52 +100,9 @@ public:
 };
 
 
-bool form::create() {
-	WNDCLASSA wndclass;
-	wndclass.style = CS_HREDRAW | CS_VREDRAW;
-	wndclass.lpfnWndProc = WinProc; 
-	wndclass.cbClsExtra = 0;
-	wndclass.cbWndExtra = 0;
-	wndclass.hbrBackground = (HBRUSH)GetStockObject(brush);
-	wndclass.hCursor = LoadCursorA(NULL, IDC_ARROW);
-	wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wndclass.hInstance = hi;
-	wndclass.lpszClassName = className;
-	wndclass.lpszMenuName = NULL;
-	if (!RegisterClassA(&wndclass)) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("注册类名失败！"), s, MB_OK);
-	}
-	id = (UINT)formSet.size();
-	formSet.push_back((void*)this);
-	hwnd = CreateWindowA(className, title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hi, NULL);
-	if (!hwnd)
-	{
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("创建窗口失败！"), s, MB_OK);
-		UnregisterClassA(className, hi);
-		formSet.pop_back();
-		return false;
-	}
-	if (this->Event_On_Create) this->Event_On_Create(this);
-	return true;
-}
 
-unsigned long long form::show() {				//在此处主程序挂起
-	MSG msg;
-	ShowWindow(hwnd, SW_SHOW); UpdateWindow(hwnd);
-	ZeroMemory(&msg, sizeof(msg));
-	if (this->Event_Load_Complete) this->Event_Load_Complete(this);
-	while (GetMessage(&msg, hwnd, 0, 0)>0)
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-	UnregisterClassA(className, hi);
-	return msg.wParam;
-}
+
+
 
 class control {				//继承类
 private:
@@ -133,10 +134,6 @@ public:
 	void show() {
 		ShowWindow(hWnd, 1);
 	}
-	void push(control* me) {
-		controls.push_back((void*)me);
-		sortable = false;
-	}
 };
 
 class button :public control {
@@ -153,32 +150,32 @@ public:
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
 	}
-	int create();
+	//int create();
 	void(*Event_On_Click)(button*) = NULL;
+	int create() {
+		hWnd = CreateWindowA(
+			"BUTTON",   // predefined class  
+			this->name(),       // button text  
+			WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // styles  
+			this->x,         // starting x position  
+			this->y,         // starting y position  
+			this->w,        // button width  
+			this->h,        // button height  
+			this->parent->hWnd(),       // parent window  
+			NULL,       // No menu  
+			hi,
+			NULL);      // pointer not needed  
+		if (!hWnd) {
+			char s[10];
+			_itoa_s(GetLastError(), s, 10);
+			MessageBox(NULL, TEXT("创建按钮失败！"), s, MB_OK);
+			return -1;
+		}
+		return id;
+	}
 };
 
-int button::create() {
-	hWnd = CreateWindowA(
-		"BUTTON",   // predefined class  
-		this->name(),       // button text  
-		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // styles  
-		this->x,         // starting x position  
-		this->y,         // starting y position  
-		this->w,        // button width  
-		this->h,        // button height  
-		this->parent->hWnd(),       // parent window  
-		NULL,       // No menu  
-		hi,
-		NULL);      // pointer not needed  
-	if (!hWnd) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("创建按钮失败！"), s, MB_OK);
-		return -1;
-	}
-	push(this);
-	return id;
-}
+
 
 class Textbox :public control {
 public:
@@ -195,30 +192,30 @@ public:
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
 	}
-	int create();
+	//int create();
 	void(*Event_Text_Change)(Textbox*) = NULL;
+	int create() {
+		hWnd = CreateWindowExA(
+			NULL,
+			"Edit",
+			this->name(),
+			(this->Multiline ? ES_MULTILINE | WS_CHILD : WS_CHILD) | WS_VISIBLE | WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN,
+			this->x, this->y, this->w, this->h,
+			this->parent->hWnd(),
+			NULL,
+			hi,
+			NULL);
+		if (!hWnd) {
+			char s[10];
+			_itoa_s(GetLastError(), s, 10);
+			MessageBox(NULL, TEXT("创建文本框失败！"), s, MB_OK);
+			return -1;
+		}
+		return id;
+	}
 };
 
-int Textbox::create() {
-	hWnd = CreateWindowExA(
-		NULL,
-		"Edit",
-		this->name(),
-		(this->Multiline ? ES_MULTILINE | WS_CHILD : WS_CHILD) | WS_VISIBLE | WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN,
-		this->x, this->y, this->w, this->h,
-		this->parent->hWnd(),
-		NULL,
-		hi,
-		NULL);
-	if (!hWnd) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("创建文本框失败！"), s, MB_OK);
-		return -1;
-	}
-	push(this);
-	return id;
-}
+
 
 class Label :public control {
 public:
@@ -235,31 +232,32 @@ public:
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
 	}
-	int create();
+	//int create();
 	void(*Event_On_Click)(Label*) = NULL;
+	int create() {
+		hWnd = CreateWindowA(
+			"STATIC",
+			this->name(),
+			WS_CHILD | WS_VISIBLE | SS_NOTIFY,
+			this->x, this->y, this->w, this->h,
+			this->parent->hWnd(),
+			NULL,
+			hi,
+			NULL);
+		if (!hWnd) {
+			char s[10];
+			_itoa_s(GetLastError(), s, 10);
+			MessageBox(NULL, TEXT("创建标签框失败！"), s, MB_OK);
+			return -1;
+		}
+		return id;
+	}
 };
 
-int Label::create() {	
-	hWnd = CreateWindowA(
-		"STATIC",
-		this->name(),
-		WS_CHILD | WS_VISIBLE | SS_NOTIFY,
-		this->x, this->y, this->w, this->h,
-		this->parent->hWnd(),
-		NULL,
-		hi,
-		NULL);
-	if (!hWnd) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("创建标签框失败！"), s, MB_OK);
-		return -1;
-	}
-	push(this);
-	return id;
-}
+
 
 class Picture :public control {
+	//.bmp only
 public:
 	LPCSTR path;
 	Picture() {}
@@ -275,43 +273,43 @@ public:
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
 	}
-	int create();
+	//int create();
 	void(*Event_On_Click)(Picture*) = NULL;
-};
-
-int Picture::create() {
-	hWnd = CreateWindowA(
-		"STATIC",
-		this->name(),
-		WS_CHILD | SS_BITMAP | WS_VISIBLE,
-		this->x, this->y, this->w, this->h,
-		this->parent->hWnd(),
-		NULL,
-		hi,
-		NULL);
-	if (hWnd) {
-		HBITMAP hbmp = (HBITMAP)LoadImage(NULL,this->path,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
-		if (!hbmp) {
+	int create() {
+		hWnd = CreateWindowA(
+			"STATIC",
+			this->name(),
+			WS_CHILD | SS_BITMAP | WS_VISIBLE,
+			this->x, this->y, this->w, this->h,
+			this->parent->hWnd(),
+			NULL,
+			hi,
+			NULL);
+		if (hWnd) {
+			HBITMAP hbmp = (HBITMAP)LoadImage(NULL, this->path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			if (!hbmp) {
+				char s[10];
+				_itoa_s(GetLastError(), s, 10);
+				MessageBox(NULL, TEXT("读取位图失败！"), s, MB_OK);
+				return -1;
+			}
+			HBITMAP holdmap = (HBITMAP)SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hbmp);
+			if (holdmap) {
+				DeleteObject(holdmap);
+			}
+			DeleteObject(hbmp);
+		}
+		else {
 			char s[10];
 			_itoa_s(GetLastError(), s, 10);
-			MessageBox(NULL, TEXT("读取位图失败！"), s, MB_OK);
+			MessageBox(NULL, TEXT("创建图片失败！"), s, MB_OK);
 			return -1;
 		}
-		HBITMAP holdmap = (HBITMAP)SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hbmp);
-		if (holdmap) {
-			DeleteObject(holdmap);
-		}
-		DeleteObject(hbmp);
+		return id;
 	}
-	else{
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("创建图片失败！"), s, MB_OK);
-		return -1;
-	}
-	push(this);
-	return id;
-}
+};
+
+
 
 class ProgressBar :public control {
 public:
@@ -329,7 +327,7 @@ public:
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
 	}
-	int create();
+	//int create();
 	void stepIn() {
 		SendMessage(hWnd, PBM_STEPIT, 0, 0);
 	}
@@ -360,40 +358,53 @@ public:
 		//back to default if void
 		SendMessage(hWnd, PBM_SETBARCOLOR,0,color);
 	}
+	int create() {
+		hWnd = CreateWindowExA(
+			NULL,
+			"msctls_progress32",
+			this->name(),
+			WS_CHILD | WS_VISIBLE | PBS_SMOOTH,
+			this->x, this->y, this->w, this->h,
+			this->parent->hWnd(),
+			NULL,
+			hi,
+			NULL);
+		if (!hWnd) {
+			char s[10];
+			_itoa_s(GetLastError(), s, 10);
+			MessageBox(NULL, TEXT("创建进度条失败！"), s, MB_OK);
+			return -1;
+		}
+		return id;
+	}
 };
 
-int ProgressBar::create() {
-	hWnd = CreateWindowExA(
-		NULL,
-		"msctls_progress32",
-		this->name(),
-		WS_CHILD | WS_VISIBLE | PBS_SMOOTH ,
-		this->x, this->y, this->w, this->h,
-		this->parent->hWnd(),
-		NULL,
-		hi,
-		NULL);
-	if (!hWnd) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("创建进度条失败！"), s, MB_OK);
-		return -1;
-	}
-	push(this);
-	return id;
-}
 
-LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+
+static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
 	case WM_CREATE:
 		//创建事件的思路还没有头绪。。暂时丢到CreateWindow后面去
 		break;
+	case WM_SIZE:
+	{
+		form* t = (form*)getForm(hwnd);
+		t->w = LOWORD(lParam);
+		t->h = HIWORD(lParam);
+		break;
+	}
+	case WM_MOVE:
+	{
+		form* t = (form*)getForm(hwnd);
+		t->x = LOWORD(lParam);
+		t->y = HIWORD(lParam);
+	}
 	case WM_COMMAND:
 		if (lParam)
 		{
-			void* p = getControl((HWND)lParam);
+			void* p = getControl(hwnd,(HWND)lParam);
 			if (p) switch (((control*)p)->type) {
 			case 'b':
 				if (((button*)p)->Event_On_Click) ((button*)p)->Event_On_Click((button*)p);
@@ -430,15 +441,15 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-void* getControl(HWND hWnd){
-	if (!sortable) {
-		sort(controls.begin(), controls.end(), [](const void* x, const void* y) -> bool { return ((control*)x)->hWnd < ((control*)y)->hWnd; });
-		sortable = true;
-	}
-	hWnd;
-	((button*)((form*)formSet[0])->tab[0])->hWnd;
-	((control*)controls[0])->hWnd;
-	std::vector<void*>::iterator r= find_if(controls.begin(),controls.end(), [hWnd](const void* x) -> bool { return ((control*)x)->hWnd == hWnd; });
+static void* getForm(HWND hWnd) {
+	std::vector<void*>::iterator r = find_if(formSet.begin(), formSet.end(), [hWnd](const void* x) -> bool {return ((form*)x)->hWnd() == hWnd; });
+	if (r == formSet.end()) return NULL;
+	else return *r;
+}
+
+static void* getControl(HWND formHwnd,HWND controlHwnd){
+	std::vector<void*> controls = ((form*)getForm(formHwnd))->tab;
+	std::vector<void*>::iterator r= find_if(controls.begin(),controls.end(), [controlHwnd](const void* x) -> bool { return ((control*)x)->hWnd == controlHwnd; });
 	if (r == controls.end()) return NULL; 
 	else return *r;
 }
