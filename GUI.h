@@ -12,42 +12,71 @@
 #define PBM_GETPOS              (WM_USER+8)
 #define PBM_SETBARCOLOR         (WM_USER+9)
 
+#define ID_MENU 9001
 extern HINSTANCE hi;
 LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-static void* getControl(HWND formHwnd, HWND controlHwnd);
 static void* getForm(HWND hWnd);
 static std::vector<void*> formSet;
 
 class form {
 private:
-	//Á™ùÂ∑≤ÁªèÂ∞ΩÈáèÁßÅÊúâ‰∫ÜQAQ
+	//Œ—“—æ≠æ°¡øÀΩ”–¡ÀQAQ
 	LPCSTR className;
 	LPCSTR title;
 	HWND hwnd;
 	unsigned int id;
+	std::vector<char*> RBmenuList;
+	std::vector<void*> RBmenuEventList;
+	HMENU RBmenu = NULL;
 public:
-	//ÊûÑÈÄ†
+	//ππ‘Ï
 	form() {}
 	form(char* className, char* title) {
 		this->title = title;
 		this->className = className;
 	}
-	//Â±ûÊÄß
+	// Ù–‘
 	int brush = 0;
 	int x;
 	int y;
 	int w;
 	int h;
 	std::vector<void*> tab;
-	//ÊñπÊ≥ï
+	//∑Ω∑®
 	HWND hWnd() { return this->hwnd; };
+	HMENU CONTEXTMENU() { return this->RBmenu; }
+	LPCSTR CLASS() { return this->className; }
+
+	void pushRBmenu(void(*Event_Menu_Click)(char* menu),char* menu) {
+		if(!RBmenuList.size()) RBmenu = CreatePopupMenu();
+		if (AppendMenu(this->RBmenu, MF_STRING, ID_MENU + this->RBmenuList.size(), "menu")) {
+			this->RBmenuList.push_back(menu);
+			this->RBmenuEventList.push_back(Event_Menu_Click);
+		}
+	}
+	void Event_RBMenu_Click(int ID) {
+		int i = ID - ID_MENU;
+		if (i>=0 && i < RBmenuList.size())
+			((void(*)(char*))RBmenuEventList[ID - ID_MENU])(RBmenuList[ID - ID_MENU]);
+	}
 	//int create();
 	//unsigned long long show();
 	void minimum() {
 		ShowWindow(hwnd, SW_SHOWMINNOACTIVE);
 	}
-<<<<<<< HEAD:GUI.h
+	void resize(int nw,int nh) {
+		if (MoveWindow(hwnd, x, y, nw, nh, true)) {
+			w = nw;
+			h = nh;
+		}
+	}
+	void move(int nx, int ny) {
+		if (MoveWindow(hwnd, nx, ny, w, h, false)) {
+			x = nx;
+			y = ny;
+		}
+	}
 	int create() {
 		WNDCLASSA wndclass;
 		wndclass.style = CS_HREDRAW | CS_VREDRAW;
@@ -60,11 +89,13 @@ public:
 		wndclass.hInstance = hi;
 		wndclass.lpszClassName = className;
 		wndclass.lpszMenuName = NULL;
-		if (!RegisterClassA(&wndclass)) {
-			char s[10];
-			_itoa_s(GetLastError(), s, 10);
-			MessageBox(NULL, TEXT("◊¢≤·¿‡√˚ ß∞‹£°"), s, MB_OK);
-			return -1;
+		if (find_if(formSet.begin(), formSet.end(), [wndclass](const void* x) -> bool {return ((form*)x)->CLASS() == wndclass.lpszClassName; }) == formSet.end()) {
+			if (!RegisterClassA(&wndclass)) {
+				char s[10];
+				_itoa_s(GetLastError(), s, 10);
+				MessageBox(NULL, TEXT("◊¢≤·¿‡√˚ ß∞‹£°"), s, MB_OK);
+				return -1;
+			}
 		}
 		id = (UINT)formSet.size();
 		formSet.push_back((void*)this);
@@ -86,7 +117,7 @@ public:
 		ShowWindow(hwnd, SW_SHOW); UpdateWindow(hwnd);
 		ZeroMemory(&msg, sizeof(msg));
 		if (this->Event_Load_Complete) this->Event_Load_Complete(this);
-		while (GetMessage(&msg, hwnd, 0, 0)>0)
+		while (GetMessage(&msg, NULL, 0, 0))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -94,74 +125,23 @@ public:
 		UnregisterClassA(className, hi);
 		return msg.wParam;
 	}
+	void* getControl(HWND controlHwnd);
 	// ¬º˛
-=======
-	//‰∫ã‰ª∂
->>>>>>> 63447969b74f13c911998aa129b6ced42f9dd350:GUI.h
 	void(*Event_On_Create)(form*) = NULL;
 	void(*Event_On_Unload)(form*) = NULL;
 	void(*Event_Load_Complete)(form*) = NULL;
 };
 
 
-<<<<<<< HEAD:GUI.h
 
 
 
-=======
-bool form::create() {
-	WNDCLASSA wndclass;
-	wndclass.style = CS_HREDRAW | CS_VREDRAW;
-	wndclass.lpfnWndProc = WinProc; 
-	wndclass.cbClsExtra = 0;
-	wndclass.cbWndExtra = 0;
-	wndclass.hbrBackground = (HBRUSH)GetStockObject(brush);
-	wndclass.hCursor = LoadCursorA(NULL, IDC_ARROW);
-	wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wndclass.hInstance = hi;
-	wndclass.lpszClassName = className;
-	wndclass.lpszMenuName = NULL;
-	if (!RegisterClassA(&wndclass)) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("Ê≥®ÂÜåÁ±ªÂêçÂ§±Ë¥•ÔºÅ"), s, MB_OK);
-	}
-	id = (UINT)formSet.size();
-	formSet.push_back((void*)this);
-	hwnd = CreateWindowA(className, title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hi, NULL);
-	if (!hwnd)
-	{
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("ÂàõÂª∫Á™óÂè£Â§±Ë¥•ÔºÅ"), s, MB_OK);
-		UnregisterClassA(className, hi);
-		formSet.pop_back();
-		return false;
-	}
-	if (this->Event_On_Create) this->Event_On_Create(this);
-	return true;
-}
 
-unsigned long long form::show() {				//Âú®Ê≠§Â§Ñ‰∏ªÁ®ãÂ∫èÊåÇËµ∑
-	MSG msg;
-	ShowWindow(hwnd, SW_SHOW); UpdateWindow(hwnd);
-	ZeroMemory(&msg, sizeof(msg));
-	if (this->Event_Load_Complete) this->Event_Load_Complete(this);
-	while (GetMessage(&msg, hwnd, 0, 0)>0)
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-	UnregisterClassA(className, hi);
-	return msg.wParam;
-}
->>>>>>> 63447969b74f13c911998aa129b6ced42f9dd350:GUI.h
-
-class control {				//ÁªßÊâøÁ±ª
+class control {				//ºÃ≥–¿‡
 private:
 	LPCSTR Name = "";
 public:
-	//Â±ûÊÄß
+	// Ù–‘
 	int x;
 	int y;
 	int w;
@@ -170,11 +150,11 @@ public:
 	form* parent = NULL;
 	HWND hWnd = NULL;
 	unsigned int id;
-	//ÊñπÊ≥ï
+	//∑Ω∑®
 
-	//ËôöÁöÑ
+	//–Èµƒ
 	virtual int create() = 0;
-	//ÂÆûÁöÑ
+	// µµƒ
 	LPCSTR name(LPCSTR newName = "") {
 		if (newName == "") return this->Name;
 		if(hWnd) SetWindowTextA(hWnd,newName);
@@ -228,32 +208,7 @@ public:
 	}
 };
 
-<<<<<<< HEAD:GUI.h
 
-=======
-int button::create() {
-	hWnd = CreateWindowA(
-		"BUTTON",   // predefined class  
-		this->name(),       // button text  
-		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // styles  
-		this->x,         // starting x position  
-		this->y,         // starting y position  
-		this->w,        // button width  
-		this->h,        // button height  
-		this->parent->hWnd(),       // parent window  
-		NULL,       // No menu  
-		hi,
-		NULL);      // pointer not needed  
-	if (!hWnd) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("ÂàõÂª∫ÊåâÈíÆÂ§±Ë¥•ÔºÅ"), s, MB_OK);
-		return -1;
-	}
-	push(this);
-	return id;
-}
->>>>>>> 63447969b74f13c911998aa129b6ced42f9dd350:GUI.h
 
 class Textbox :public control {
 public:
@@ -293,30 +248,7 @@ public:
 	}
 };
 
-<<<<<<< HEAD:GUI.h
 
-=======
-int Textbox::create() {
-	hWnd = CreateWindowExA(
-		NULL,
-		"Edit",
-		this->name(),
-		(this->Multiline ? ES_MULTILINE | WS_CHILD : WS_CHILD) | WS_VISIBLE | WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN,
-		this->x, this->y, this->w, this->h,
-		this->parent->hWnd(),
-		NULL,
-		hi,
-		NULL);
-	if (!hWnd) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("ÂàõÂª∫ÊñáÊú¨Ê°ÜÂ§±Ë¥•ÔºÅ"), s, MB_OK);
-		return -1;
-	}
-	push(this);
-	return id;
-}
->>>>>>> 63447969b74f13c911998aa129b6ced42f9dd350:GUI.h
 
 class Label :public control {
 public:
@@ -355,29 +287,7 @@ public:
 	}
 };
 
-<<<<<<< HEAD:GUI.h
 
-=======
-int Label::create() {	
-	hWnd = CreateWindowA(
-		"STATIC",
-		this->name(),
-		WS_CHILD | WS_VISIBLE | SS_NOTIFY,
-		this->x, this->y, this->w, this->h,
-		this->parent->hWnd(),
-		NULL,
-		hi,
-		NULL);
-	if (!hWnd) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("ÂàõÂª∫Ê†áÁ≠æÊ°ÜÂ§±Ë¥•ÔºÅ"), s, MB_OK);
-		return -1;
-	}
-	push(this);
-	return id;
-}
->>>>>>> 63447969b74f13c911998aa129b6ced42f9dd350:GUI.h
 
 class Picture :public control {
 	//.bmp only
@@ -425,27 +335,10 @@ public:
 		else {
 			char s[10];
 			_itoa_s(GetLastError(), s, 10);
-<<<<<<< HEAD:GUI.h
 			MessageBox(NULL, TEXT("¥¥Ω®Õº∆¨ ß∞‹£°"), s, MB_OK);
 			return -1;
 		}
 		return id;
-=======
-			MessageBox(NULL, TEXT("ËØªÂèñ‰ΩçÂõæÂ§±Ë¥•ÔºÅ"), s, MB_OK);
-			return -1;
-		}
-		HBITMAP holdmap = (HBITMAP)SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hbmp);
-		if (holdmap) {
-			DeleteObject(holdmap);
-		}
-		DeleteObject(hbmp);
-	}
-	else{
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("ÂàõÂª∫ÂõæÁâáÂ§±Ë¥•ÔºÅ"), s, MB_OK);
-		return -1;
->>>>>>> 63447969b74f13c911998aa129b6ced42f9dd350:GUI.h
 	}
 };
 
@@ -519,29 +412,6 @@ public:
 	}
 };
 
-<<<<<<< HEAD:GUI.h
-=======
-int ProgressBar::create() {
-	hWnd = CreateWindowExA(
-		NULL,
-		"msctls_progress32",
-		this->name(),
-		WS_CHILD | WS_VISIBLE | PBS_SMOOTH ,
-		this->x, this->y, this->w, this->h,
-		this->parent->hWnd(),
-		NULL,
-		hi,
-		NULL);
-	if (!hWnd) {
-		char s[10];
-		_itoa_s(GetLastError(), s, 10);
-		MessageBox(NULL, TEXT("ÂàõÂª∫ËøõÂ∫¶Êù°Â§±Ë¥•ÔºÅ"), s, MB_OK);
-		return -1;
-	}
-	push(this);
-	return id;
-}
->>>>>>> 63447969b74f13c911998aa129b6ced42f9dd350:GUI.h
 
 
 static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -549,8 +419,22 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 	switch (message)
 	{
 	case WM_CREATE:
-		//ÂàõÂª∫‰∫ã‰ª∂ÁöÑÊÄùË∑ØËøòÊ≤°ÊúâÂ§¥Áª™„ÄÇ„ÄÇÊöÇÊó∂‰∏¢Âà∞CreateWindowÂêéÈù¢Âéª
+		//¥¥Ω® ¬º˛µƒÀº¬∑ªπ√ª”–Õ∑–˜°£°£‘› ±∂™µΩCreateWindow∫Û√Ê»•
 		break;
+	case WM_CONTEXTMENU:
+	{
+		RECT rect;
+		POINT pt;
+		pt.x = LOWORD(lParam);
+		pt.y = HIWORD(lParam);
+		GetClientRect((HWND)wParam, &rect);
+		//∞—∆¡ƒª◊¯±Í◊™Œ™øÕªß«¯◊¯±Í  
+		ScreenToClient((HWND)wParam, &pt);
+		if (PtInRect(&rect, pt))
+			TrackPopupMenu(((form*)getForm(hwnd))->CONTEXTMENU(),TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, LOWORD(lParam), HIWORD(lParam),0,(HWND)wParam,NULL);
+		else return DefWindowProc(hwnd, message, wParam, lParam);
+		break;
+	}
 	case WM_SIZE:
 	{
 		form* t = (form*)getForm(hwnd);
@@ -567,7 +451,8 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 	case WM_COMMAND:
 		if (lParam)
 		{
-			void* p = getControl(hwnd,(HWND)lParam);
+			//’‚ «øÿº˛µ„ª˜ ¬º˛
+			void* p = ((form*)getForm(hwnd))->getControl((HWND)lParam);
 			if (p) switch (((control*)p)->type) {
 			case 'b':
 				if (((button*)p)->Event_On_Click) ((button*)p)->Event_On_Click((button*)p);
@@ -582,22 +467,27 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 				break;
 			}
 		}
+		else {
+			//’’MSDN…œÀµ£¨’‚ «≤Àµ•∫Õº”ÀŸº¸°£°£°£
+			//º”ÀŸº¸ «∏ˆº¶∂Ï∂´Œ˜°£°£°£øÏΩ›º¸√¥°£°£°£
+			((form*)getForm(hwnd))->Event_RBMenu_Click(LOWORD(wParam));
+		}
 		break;
-	case WM_CTLCOLORSTATIC://Êã¶Êà™WM_CTLCOLORSTATICÊ∂àÊÅØ
+	case WM_CTLCOLORSTATIC://¿πΩÿWM_CTLCOLORSTATICœ˚œ¢
 	{
-		SetBkMode((HDC)wParam, TRANSPARENT);//ËÆæÁΩÆËÉåÊôØÈÄèÊòé
+		SetBkMode((HDC)wParam, TRANSPARENT);//…Ë÷√±≥æ∞Õ∏√˜
 		std::vector<void*>::iterator p = find_if(formSet.begin(), formSet.end(), [hwnd](const void* x) -> bool {return hwnd == ((form*)x)->hWnd(); });
 		if(p != formSet.end()) 
-			return (INT_PTR)GetStockObject(((form*)(*p))->brush);//ËøîÂõûÁà∂Á™óÁîªÂà∑
+			return (INT_PTR)GetStockObject(((form*)(*p))->brush);//∑µªÿ∏∏¥∞ª≠À¢
 	}
 	case WM_CLOSE:
-		for (unsigned int i = 0; i < formSet.size(); i++) if (hwnd == ((form*)formSet[i])->hWnd()) {
-			void(*p)(form*) = ((form*)formSet[i])->Event_On_Unload;
-			if (p) p((form*)formSet[i]);
-		}
+	{
+		form * t = (form*)getForm(hwnd);
+		if (t->Event_On_Unload) t->Event_On_Unload(t);
 		DestroyWindow(hwnd);
 		PostQuitMessage(0);
 		break;
+	}
 	default:
 		return DefWindowProc(hwnd, message, wParam, lParam);
 	}
@@ -610,9 +500,8 @@ static void* getForm(HWND hWnd) {
 	else return *r;
 }
 
-static void* getControl(HWND formHwnd,HWND controlHwnd){
-	std::vector<void*> controls = ((form*)getForm(formHwnd))->tab;
-	std::vector<void*>::iterator r= find_if(controls.begin(),controls.end(), [controlHwnd](const void* x) -> bool { return ((control*)x)->hWnd == controlHwnd; });
-	if (r == controls.end()) return NULL; 
+inline void* form::getControl(HWND controlHwnd) {
+	std::vector<void*>::iterator r = find_if(tab.begin(), tab.end(), [controlHwnd](const void* x) -> bool { return ((control*)x)->hWnd == controlHwnd; });
+	if (r == tab.end()) return NULL;
 	else return *r;
 }

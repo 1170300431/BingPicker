@@ -10,18 +10,21 @@
 #include "opencv2/highgui.hpp"
 
 #define MAXSIZE 1024
+
+
 extern std::string httpGet(std::string);
 extern std::string download(std::string);
+extern void about_onCreate(form* me);
 std::string regurl(std::string);
 void setWallpaper(std::string);
 
+HINSTANCE hi;
+
 double start, end;
 std::string filename;
+extern form about;
 form frmain((char*)"JamzumSum", (char*)"bingPicker");
 
-
-
-HINSTANCE hi;
 
 void info_onClick(Label* me) {
 	if (me->tag == "1") {
@@ -58,9 +61,17 @@ void frmain_Loaded(form* me) {
 	info->tag = "1";
 }
 
+void frmain_onCreate(form* me) {
+	
+	
+	me->pushRBmenu([](char* menu) {about.Event_On_Create = about_onCreate; about.create(); about.show(); }, (char*)"About");
+	
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow){
 	hi = hInstance;
 	frmain.Event_Load_Complete = frmain_Loaded;
+	frmain.Event_On_Create = frmain_onCreate;
 	frmain.create();
 
 	Label info(&frmain, 8, 500, 500, 36, (char*)"");
@@ -90,19 +101,6 @@ std::string regurl(std::string httpD) {
 
 void setWallpaper(std::string path) {
 	HRESULT hr = S_OK;
-
-	//设置壁纸风格和展开方式  
-	//在Control Panel\Desktop中的两个键值将被设置  
-	// TileWallpaper  
-	//  0: 图片不被平铺   
-	//  1: 被平铺   
-	// WallpaperStyle  
-	//  0:  0表示图片居中，1表示平铺  
-	//  2:  拉伸填充整个屏幕  
-	//  6:  拉伸适应屏幕并保持高度比  
-	//  10: 图片被调整大小裁剪适应屏幕保持纵横比  
-
-	//以可读可写的方式打开HKCU\Control Panel\Desktop注册表项  
 	HKEY hKey = NULL;
 	hr = HRESULT_FROM_WIN32(RegOpenKeyEx(HKEY_CURRENT_USER,
 		"Control Panel\\Desktop", 0, KEY_READ | KEY_WRITE, &hKey));
