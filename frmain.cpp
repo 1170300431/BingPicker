@@ -7,10 +7,10 @@
 #pragma once
 #include "GUI.h"
 #include <regex>
+
 #include "opencv2/highgui.hpp"
 
 #define MAXSIZE 1024
-
 
 extern std::string httpGet(std::string);
 extern std::string download(std::string);
@@ -72,7 +72,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	hi = hInstance;
 	frmain.Event_Load_Complete = frmain_Loaded;
 	frmain.Event_On_Create = frmain_onCreate;
-	frmain.create();
+	frmain.setIcon(MAKEINTRESOURCE(102), MAKEINTRESOURCE(101));
+	if (frmain.create() < 0) return 1;
 
 	Label info(&frmain, 8, 500, 500, 36, (char*)"");
 	ProgressBar dld(&frmain, 8, 304, 1120, 16, (char*)"downloading...");
@@ -85,6 +86,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	info.Event_On_Click = info_onClick;
 	setWall.Event_On_Click = [](button* me) {if (filename.c_str())setWallpaper(filename); };
 	frmain.show();
+	return 0;
 }
 
 
@@ -97,7 +99,7 @@ std::string regurl(std::string httpD) {
 		((Label*)frmain.tab[0])->name("Sorry. But no picture is crawled. Ask for your dev.");
 		return "";
 	}
-}
+} 
 
 void setWallpaper(std::string path) {
 	HRESULT hr = S_OK;

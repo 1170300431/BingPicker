@@ -28,7 +28,7 @@ public:
 		return E_NOTIMPL;
 	}
 	STDMETHOD(OnLowResource)(DWORD reserved)
-	{
+	{ 
 		return E_NOTIMPL;
 	}
 
