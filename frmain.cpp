@@ -11,6 +11,8 @@
 #include "opencv2/highgui.hpp"
 
 #define MAXSIZE 1024
+#define IDI_WINDOW1 102
+#define IDI_ICON1 101
 
 extern std::string httpGet(std::string);
 extern std::string download(std::string);
@@ -72,7 +74,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	hi = hInstance;
 	frmain.Event_Load_Complete = frmain_Loaded;
 	frmain.Event_On_Create = frmain_onCreate;
-	frmain.setIcon(MAKEINTRESOURCE(102), MAKEINTRESOURCE(101));
+	frmain.setIcon(MAKEINTRESOURCE(IDI_WINDOW1), MAKEINTRESOURCE(IDI_ICON1));
 	if (frmain.create() < 0) return 1;
 
 	Label info(&frmain, 8, 500, 500, 36, (char*)"");
