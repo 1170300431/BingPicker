@@ -10,7 +10,6 @@
 
 #include "opencv2/highgui.hpp"
 
-#define MAXSIZE 1024
 #define IDI_WINDOW1 102
 #define IDI_ICON1 101
 
@@ -45,7 +44,7 @@ void frmain_Loaded(form* me) {
 	std::string httpD = httpGet("http://cn.bing.com");
 	std::string pic = regurl(httpD);
 	if (pic == "") {
-		info->name("No pic found. ask for dev. ");
+		info->name = "No pic found. ask for dev. ";
 		return;
 	}
 	filename = download(pic);
@@ -59,7 +58,7 @@ void frmain_Loaded(form* me) {
 	cv::imshow(filename.c_str(),image);
 	cv::resizeWindow(filename.c_str(), 1280, 720);
 	cv::waitKey(0);
-	info->name("Today's Bing image is ready. Enjoy it.");
+	info->name="Today's Bing image is ready. Enjoy it.";
 	info->tag = "1";
 }
 
@@ -98,7 +97,7 @@ std::string regurl(std::string httpD) {
 	std::smatch rm;
 	if (std::regex_search(httpD, rm, rr)) return "http://cn.bing.com" + rm.str();
 	else {
-		((Label*)frmain.tab[0])->name("Sorry. But no picture is crawled. Ask for your dev.");
+		((Label*)frmain.tab[0])->name = "Sorry. But no picture is crawled. Ask for your dev.";
 		return "";
 	}
 } 

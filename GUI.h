@@ -12,12 +12,55 @@
 #define PBM_GETPOS              (WM_USER+8)
 #define PBM_SETBARCOLOR         (WM_USER+9)
 
+#define MAXSIZE 1024
 #define ID_MENU 9001
+
+#define assert(expression) ((void)0)
 extern HINSTANCE hi;
 LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 static void* getForm(HWND hWnd);
 static std::vector<void*> formSet;
+
+enum permission {
+	readWrite,readOnly,writeOnly
+};
+
+template <typename Container,typename Value,enum permission prop>
+class Property {
+private:
+	Container * me = NULL;
+	void (Container::*Set)(Value value) = NULL;
+	Value (Container::*Get)() = NULL;
+public:
+	Property(){}
+	void setContainer(Container* x)
+	{
+		me = x;
+	}
+	void setter(void (Container::*pSet)(Value value))
+	{
+		if ((prop == writeOnly) || (prop == readWrite)) Set = pSet;
+		
+	}
+	void getter(Value (Container::*pGet)())
+	{
+		if ((prop == readWrite) || (prop == readOnly)) Get = pGet;
+	}
+	Value operator =(const Value& value)
+	{
+		assert(me);
+		assert(Set);
+		(me->*Set)(value);
+		return value;
+	}
+	operator Value() {
+		assert(me);
+		assert(Get);
+		return (me->*Get)();
+	}
+};
+
 
 class form {
 private:
@@ -147,7 +190,14 @@ public:
 
 class control {				//继承类
 private:
-	LPCSTR Name = "";
+	LPCSTR Name = NULL;
+	void setName(LPCSTR newName) {
+		if (hWnd) SetWindowTextA(hWnd, newName); 
+		Name = newName;
+	}
+	LPCSTR getName() {
+		return Name;
+	}
 public:
 	//属性
 	int x;
@@ -159,16 +209,18 @@ public:
 	HWND hWnd = NULL;
 	unsigned int id;
 	//方法
-
+	control(){
+		name.setContainer(this);
+		name.setter(&control::setName);
+		name.getter(&control::getName);
+	}
 	//虚的
 	virtual int create() = 0;
 	//实的
-	LPCSTR name(LPCSTR newName = "") {
-		if (newName == "") return this->Name;
-		if(hWnd) SetWindowTextA(hWnd,newName);
-		this->Name = newName;
-		return this->Name;
-	}
+	
+	
+	
+	Property<control, LPCSTR, readWrite> name;
 	void hide() {
 		ShowWindow(hWnd,0);
 	}
@@ -187,7 +239,7 @@ public:
 		this->h = h;
 		this->type = 'b';
 		this->parent = parent;
-		this->name(Name);				//x
+		this->name = Name;				//x
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
 	}
@@ -196,7 +248,7 @@ public:
 	int create() {
 		hWnd = CreateWindowA(
 			"BUTTON",   // predefined class  
-			this->name(),       // button text  
+			this->name,       // button text  
 			WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // styles  
 			this->x,         // starting x position  
 			this->y,         // starting y position  
@@ -229,7 +281,7 @@ public:
 		this->h = h;
 		this->type = 't';
 		this->parent = parent;
-		this->name(Name);				//x
+		this->name = Name;				//x
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
 	}
@@ -239,7 +291,7 @@ public:
 		hWnd = CreateWindowExA(
 			NULL,
 			"Edit",
-			this->name(),
+			this->name,
 			(this->Multiline ? ES_MULTILINE | WS_CHILD : WS_CHILD) | WS_VISIBLE | WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN,
 			this->x, this->y, this->w, this->h,
 			this->parent->hWnd(),
@@ -269,7 +321,7 @@ public:
 		this->h = h;
 		this->type = 'l';
 		this->parent = parent;
-		this->name(Name);				//x
+		this->name = Name;				//x
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
 	}
@@ -278,7 +330,7 @@ public:
 	int create() {
 		hWnd = CreateWindowA(
 			"STATIC",
-			this->name(),
+			this->name,
 			WS_CHILD | WS_VISIBLE | SS_NOTIFY,
 			this->x, this->y, this->w, this->h,
 			this->parent->hWnd(),
@@ -309,7 +361,7 @@ public:
 		this->h = h;
 		this->type = 'p';
 		this->parent = parent;
-		this->name(Name);				//x
+		this->name = Name;				//x
 		this->path = picPath;
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
@@ -319,7 +371,7 @@ public:
 	int create() {
 		hWnd = CreateWindowA(
 			"STATIC",
-			this->name(),
+			this->name,
 			WS_CHILD | SS_BITMAP | WS_VISIBLE,
 			this->x, this->y, this->w, this->h,
 			this->parent->hWnd(),
@@ -364,7 +416,7 @@ public:
 		this->h = h;
 		this->type = 'P';
 		this->parent = parent;
-		this->name(Name);				//x
+		this->name = Name;				//x
 		id = (UINT)parent->tab.size();
 		parent->tab.push_back(this);
 	}
@@ -403,7 +455,7 @@ public:
 		hWnd = CreateWindowExA(
 			NULL,
 			"msctls_progress32",
-			this->name(),
+			this->name,
 			WS_CHILD | WS_VISIBLE | PBS_SMOOTH,
 			this->x, this->y, this->w, this->h,
 			this->parent->hWnd(),

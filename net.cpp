@@ -37,7 +37,7 @@ public:
 		(ULONG ulProgress, ULONG ulProgressMax, ULONG ulStatusCode, LPCWSTR wszStatusText) {
 		end = clock();
 		if (end - start > overtime) return INET_E_DOWNLOAD_FAILURE;
-		if (ulProgressMax == 0) ((Label*)frmain.tab[0])->name("unknown file size.");
+		if (ulProgressMax == 0) ((Label*)frmain.tab[0])->name = "unknown file size.";
 		else {
 			((ProgressBar*)frmain.tab[1])->setRange(ulProgressMax);
 			((ProgressBar*)frmain.tab[1])->setPos(ulProgress);
@@ -112,7 +112,7 @@ std::string download(std::string url) {
 	filename += replace(da);
 	filename += ".jpg";
 	DeleteUrlCacheEntryA(url.c_str());
-	((Label*)frmain.tab[0])->name("Download started.");
+	((Label*)frmain.tab[0])->name = "Download started.";
 	switch (URLDownloadToFileA(NULL, url.c_str(), filename.c_str(), 0, &cbc)) {
 	case S_OK:
 		start = clock();
@@ -120,13 +120,13 @@ std::string download(std::string url) {
 		filename += ".jpg";
 		return filename;
 	case E_OUTOFMEMORY:
-		((Label*)frmain.tab[0])->name("The buffer length is invalid, or there is insufficient memory to complete the operation.");
+		((Label*)frmain.tab[0])->name = "The buffer length is invalid, or there is insufficient memory to complete the operation.";
 		return "";
 	case INET_E_DOWNLOAD_FAILURE:
-		((Label*)frmain.tab[0])->name("The specified resource or callback interface was invalid.");
+		((Label*)frmain.tab[0])->name = "The specified resource or callback interface was invalid.";
 		return "";
 	default:
-		((Label*)frmain.tab[0])->name("Ooops...it seems that some error has occured. Error code: ");
+		((Label*)frmain.tab[0])->name = "Ooops...it seems that some error has occured. Error code: ";
 	}
 	return "";
 }
