@@ -32,3 +32,7 @@
 *.app
 
 .vs/
+x64/
+GUIlib/x64/
+*.jpg
+*.ico
