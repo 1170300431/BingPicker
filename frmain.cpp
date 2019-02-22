@@ -5,7 +5,7 @@
 *      Author: JamzumSum
 */
 #pragma once
-#include "GUIlib\GUI.hpp"
+#include "GUI.hpp"
 #include "resource.h"
 #include <ShellAPI.h>
 

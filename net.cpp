@@ -1,5 +1,5 @@
 #pragma once
-#include "GUIlib\GUI.hpp"
+#include "GUI.hpp"
 #include <wininet.h>
 #include <urlmon.h>
 #include <time.h>
