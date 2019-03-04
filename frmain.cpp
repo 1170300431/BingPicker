@@ -7,6 +7,7 @@
 #pragma once
 #include "GUI.hpp"
 #include "resource.h"
+#include <io.h>
 #include <ShellAPI.h>
 
 using namespace std;
@@ -15,6 +16,7 @@ extern string httpGet(string);
 extern string regurl(string, string&);
 extern bool download(string, string);
 static void setWallpaper(string);
+bool isExist(string filepath);
 
 Label* notify = NULL;
 ProgressBar* progress = NULL;
@@ -47,9 +49,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	Label info(&frmain, 8, -60, 500, 36, "Tap `Download`");
 	ProgressBar dld(&frmain, 8, -80, -32, 16, "downloading...");
 	Button setWall(&frmain, 280, 120, 80, 45, "Download");
+	//Picture setting(&frmain, 0, 0, 24, 24);
 
 	string filename;
 	frmain.feature ^= WS_MAXIMIZEBOX;
+	//setting.feature |= SS_ICON | SS_REALSIZEIMAGE;
 	bool downloaded = false;
 	notify = &info;
 	progress = &dld;
@@ -63,17 +67,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		showPic(filename + ".jpg");
 	};
 
+	/*setting.Event_On_Click = [&info]() {
+		info.name = "Setting Clicked";
+	};*/
+
 	frmain.Event_Load_Complete = [&]() {
 		info.setFont("Î¢ÈíÑÅºÚ", 18);
 		setWall.setFont("Î¢ÈíÑÅºÚ", 18);
+		//setting.loadIcon(MAKEINTRESOURCE(IDI_ICON3));
 	};
 	setWall.Event_On_Click = [&]() {
-		if (downloaded) setWallpaper(filename);
+		if (downloaded) setWallpaper(filename + ".jpg");
 		else {
 			string httpD = httpGet("https://cn.bing.com");
 			string pic;
 			try {
 				pic = regurl(httpD, filename);
+				if (isExist(filename + ".jpg")) {
+					if (MessageBox(frmain.hWnd(), (filename + ".jpg ÒÑ¾­´æÔÚ£¬Òª¼ÌÐøÂð£¿").c_str(), "BingPicker", MB_YESNO) == IDNO) return;
+				}
 				download(pic, filename);
 			}
 			catch (string msg) {
@@ -121,15 +133,15 @@ void setWallpaper(string path) {
 	char current[MAXSIZE];
 	if (GetCurrentDirectory(MAXSIZE, current)) {
 		string fullpath = current;
-		fullpath += "//";
+		fullpath += "\\";
 		fullpath += path;
-		if (SUCCEEDED(hr)) if (!SystemParametersInfoA(SPI_SETDESKWALLPAPER, 0, (PVOID)fullpath.c_str(), SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE)) {
-			//hr = HRESULT_FROM_WIN32(GetLastError());
-			/*char s[10];
-			_itoa_s(GetLastError(), s, 10);
-			MessageBox(NULL, TEXT("ÉèÖÃ±ÚÖ½Ê§°Ü£¡"), s, MB_OK);*/
+		if (SUCCEEDED(hr)) if (!SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (PVOID)fullpath.c_str(), SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE)) {
 			popError();
 		}
 	}
 	
+}
+
+bool isExist(string filepath) {
+	return _access(filepath.c_str(), 0) >= 0;
 }

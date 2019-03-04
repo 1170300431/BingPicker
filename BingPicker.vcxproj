@@ -131,6 +131,7 @@
     <ResourceCompile Include="BingPicker.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="icons8_Settings.ico" />
     <Image Include="microsoft_bing_search256.ico" />
     <Image Include="microsoft_bing_search32.ico" />
   </ItemGroup>

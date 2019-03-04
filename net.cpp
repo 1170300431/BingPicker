@@ -4,6 +4,7 @@
 #include <urlmon.h>
 #include <time.h>
 #include <string>
+#include <functional>
 #include <regex>
 
 #define MAXSIZE 1024
@@ -83,6 +84,7 @@ public:
 		return S_OK;
 	}
 
+	std::function<void(void)> Event_End_Download = NULL;
 	void begin() {
 		start = clock();
 	}
