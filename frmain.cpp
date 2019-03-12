@@ -8,12 +8,13 @@
 #include "GUI.hpp"
 #include "resource.h"
 #include <io.h>
+#include <stdexcept>
 #include <ShellAPI.h>
 
 using namespace std;
 
 extern string httpGet(string);
-extern string regurl(string, string&);
+extern tuple<string, string> regurl(string);
 extern bool download(string, string);
 static void setWallpaper(string);
 bool isExist(string filepath);
@@ -68,7 +69,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	};
 
 	/*setting.Event_On_Click = [&info]() {
-		info.name = "Setting Clicked";
+		info.text = "Setting Clicked";
 	};*/
 
 	frmain.Event_Load_Complete = [&]() {
@@ -80,16 +81,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		if (downloaded) setWallpaper(filename + ".jpg");
 		else {
 			string httpD = httpGet("https://cn.bing.com");
-			string pic;
 			try {
-				pic = regurl(httpD, filename);
+				auto [pic, file] = regurl(httpD);
+				filename = file;
 				if (isExist(filename + ".jpg")) {
+					downloaded = true;
+					setWall.text = "Set as Wallpaper";
+					setWall.resize(160, 0);
+					setWall.move(240, 0);
+					info.text = ("Today's Bing image: " + filename).c_str();
 					if (MessageBox(frmain.hWnd(), (filename + ".jpg 已经存在，要继续吗？").c_str(), "BingPicker", MB_YESNO) == IDNO) return;
 				}
 				download(pic, filename);
 			}
-			catch (string msg) {
-				info.name = msg.c_str();
+			catch (runtime_error msg) {
+				info.text = msg.what();
+				return;
 				return;
 			}
 
@@ -97,10 +104,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 			downloaded = true;
 			dld.full();
 			showPic(filename + ".jpg");
-			setWall.name = "Set as Wallpaper";
+			setWall.text = "Set as Wallpaper";
 			setWall.resize(160, 0);
 			setWall.move(240, 0);
-			info.name = ("Today's Bing image: " + filename).c_str();
+			info.text = ("Today's Bing image: " + filename).c_str();
 		}
 	};
 	frmain.run();

@@ -76,7 +76,7 @@ public:
 		(ULONG ulProgress, ULONG ulProgressMax, ULONG ulStatusCode, LPCWSTR wszStatusText) {
 		end = clock();
 		if (end - start > overtime) return INET_E_DOWNLOAD_FAILURE;
-		if (ulProgressMax == 0) notify->name = "unknown file size.";
+		if (ulProgressMax == 0) notify->text = "unknown file size.";
 		else {
 			progress->setRange(ulProgressMax);
 			progress->setPos(ulProgress);
@@ -125,8 +125,8 @@ bool download(string url, string name) throw(string){
 	
 	name += ".jpg";
 	DeleteUrlCacheEntry(url.c_str());
-	notify->name = "Download started.";
-	switch (URLDownloadToFile(NULL, url.c_str(), name.c_str(), 0, &cbc)) {
+	notify->text = "Download started.";
+	switch (int e = URLDownloadToFile(NULL, url.c_str(), name.c_str(), 0, &cbc)) {
 	case S_OK:
 		cbc.begin();
 		return true;
@@ -135,17 +135,15 @@ bool download(string url, string name) throw(string){
 	case INET_E_DOWNLOAD_FAILURE:
 		throw string("The specified resource or callback interface was invalid.");
 	default:
-		throw string("Ooops...it seems that some error has occured. Error code: ");
+		throw string("Ooops...it seems that some error has occured. Error code: " + e);
 	}
 	return false;
 }
 
-string regurl(string httpD, string& name) throw(string){
+tuple<string, string> regurl(string httpD) throw(runtime_error){
 	smatch rurl, rname;
-	if (!std::regex_search(httpD, rurl, regex("/az.*?_1920x1080.jpg"))) throw string("Sorry. But no picture is crawled. Ask for your dev.");
-	name = rurl.str();
-	std::regex_search(name, rname, regex("rb/.*?_"));
-	name = rname.str().substr(3);
-	name.pop_back();
-	return "http://cn.bing.com" + rurl.str();
+	if (!std::regex_search(httpD, rurl, regex("href=\"(.*?1920x1080.jpg.*?)\""))) throw runtime_error("Sorry. But no picture is crawled. Ask for your dev.");
+	string tmp = rurl[1];
+	std::regex_search(tmp, rname, regex("id=.*?([a-zA-Z]+)_"));
+	return make_tuple("https://cn.bing.com" + tmp, rname[1]);
 }
