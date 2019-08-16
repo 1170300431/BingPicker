@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include "frmMain.h"
+#include <QtWidgets>
 #include <Regex>
 
 using namespace std;

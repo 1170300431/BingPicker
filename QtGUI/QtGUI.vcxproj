@@ -129,7 +129,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="frmMain.h" />
-    <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="frmMain.ui" />
