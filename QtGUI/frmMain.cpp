@@ -15,9 +15,9 @@ void frmMain::setWallpaper()
 {
 	QSettings wallPaper("HKEY_CURRENT_USER\\Control Panel\\Desktop", QSettings::NativeFormat);
 	//把注册表的桌面图片路径改为指定路径.
-	wallPaper.setValue("Wallpaper", filename);
+	wallPaper.setValue("Wallpaper", filePath);
 
-	QByteArray byte = filename.toLocal8Bit();
+	QByteArray byte = filePath.toLocal8Bit();
 	//调用windows api.
 	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, byte.data(), SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE);
 }

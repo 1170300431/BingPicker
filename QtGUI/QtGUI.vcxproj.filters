@@ -33,9 +33,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="frmMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -59,8 +56,5 @@
     <QtRcc Include="frmMain.qrc">
       <Filter>Resource Files</Filter>
     </QtRcc>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="QtGUI.rc" />
   </ItemGroup>
 </Project>
