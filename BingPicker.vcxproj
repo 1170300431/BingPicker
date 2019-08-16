@@ -134,15 +134,7 @@
     <ClCompile Include="net.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="BingPicker.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="icons8_Settings.ico" />
-    <Image Include="microsoft_bing_search256.ico" />
-    <Image Include="microsoft_bing_search32.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

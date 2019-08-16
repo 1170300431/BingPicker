@@ -38,3 +38,4 @@ GUIlib/x64/
 *.ico
 /desktop.ini
 /BingPicker.lnk
+/QtGUI/GeneratedFiles

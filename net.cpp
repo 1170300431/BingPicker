@@ -1,5 +1,4 @@
 #pragma once
-#include "GUI.hpp"
 #include <wininet.h>
 #include <urlmon.h>
 #include <time.h>
@@ -14,8 +13,6 @@ using namespace std;
 
 string httpGet(string);
 bool download(string, string);
-extern Label* notify;
-extern ProgressBar* progress;
 
 class CBindCallback : public IBindStatusCallback {
 public:
@@ -140,10 +137,22 @@ bool download(string url, string name) throw(string){
 	return false;
 }
 
-tuple<string, string> regurl(string httpD) throw(runtime_error){
+tuple<string, string> regurl(string httpD) throw(runtime_error) {
+	auto split = [](const string& x) -> string {
+		string r;
+		r.reserve(x.size());
+		r.push_back(x[0]);
+
+		for (auto i = x.begin() + 1; i != x.end(); i++) {
+			if (*i >= 'A' && *i <= 'Z') r.push_back(' ');
+			r.push_back(*i);
+		}
+		return r;
+	};
+
 	smatch rurl, rname;
 	if (!std::regex_search(httpD, rurl, regex("href=\"(.*?1920x1080.jpg.*?)\""))) throw runtime_error("Sorry. But no picture is crawled. Ask for your dev.");
 	string tmp = rurl[1];
 	std::regex_search(tmp, rname, regex("id=.*?([a-zA-Z]+)_"));
-	return make_tuple("https://cn.bing.com" + tmp, rname[1]);
+	return make_tuple("https://cn.bing.com" + tmp, split(rname[1]));
 }

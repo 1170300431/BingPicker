@@ -5,7 +5,6 @@
 *      Author: JamzumSum
 */
 #pragma once
-#include "GUI.hpp"
 #include "resource.h"
 #include <io.h>
 #include <stdexcept>
@@ -61,7 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 
 	auto showPic = [&frmain, &downloaded](string pic) {
 		if (!downloaded) return;
-		ShellExecute(frmain.hWnd(), "open", pic.c_str(), NULL, NULL, SW_SHOW);
+		ShellExecute(frmain.hWnd(), "open", ("\"" + pic + "\"").c_str(), NULL, NULL, SW_SHOW);
 	};
 
 	info.Event_On_Click = [&showPic, &filename]() {
