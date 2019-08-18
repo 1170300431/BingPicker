@@ -4,27 +4,27 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QFile>
 #include "ui_frmMain.h"
+#include "BingPicker.h"
 
-class frmMain : public QMainWindow
-{
+class frmMain : public QMainWindow {
 	Q_OBJECT
 
 public:
 	frmMain(QWidget *parent = Q_NULLPTR);
-	void download(QUrl url);
-	void ParseAndDownload(QByteArray);
-	void DownloadAndSave(QByteArray);
-	std::function<void(frmMain*, QByteArray)> onGet;
-	static std::tuple<std::string, std::string> regurl(std::string httpD) throw(std::runtime_error);
 
 private:
 	Ui::frmMainClass ui;
-	QString filename;
-	QString filePath;
+	BingPicker bingpicker;
+
+private slots:
+	void already_exist();
+	void download_complete();
+	void network_error(QNetworkReply::NetworkError eid);
+	void progress(qint64, qint64);
 
 public slots:
-	void parseURL();
 	void setWallpaper();
-	void finishedSlot(QNetworkReply* reply);
+	void onDownloadClick();
 };

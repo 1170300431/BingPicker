@@ -36,9 +36,21 @@
     <ClCompile Include="frmMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HttpGetter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BingPicker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="frmMain.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="HttpGetter.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="BingPicker.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -51,5 +63,8 @@
     <QtRcc Include="frmMain.qrc">
       <Filter>Resource Files</Filter>
     </QtRcc>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

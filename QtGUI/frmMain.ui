@@ -145,6 +145,9 @@
    </property>
   </widget>
   <action name="actionSet_As_Wallpaper">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Set As Wallpaper</string>
    </property>
@@ -160,7 +163,7 @@
    <sender>btnDownload</sender>
    <signal>clicked()</signal>
    <receiver>frmMainClass</receiver>
-   <slot>parseURL()</slot>
+   <slot>onDownloadClick()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>311</x>
@@ -207,7 +210,7 @@
   </property>
  </designerdata>
  <slots>
-  <slot>parseURL()</slot>
+  <slot>onDownloadClick()</slot>
   <slot>setWallpaper()</slot>
  </slots>
 </ui>
