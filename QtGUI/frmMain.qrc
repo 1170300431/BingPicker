@@ -1,4 +1,9 @@
 <RCC>
-    <qresource prefix="frmMain">
-    </qresource>
+  <qresource prefix="frmMain">
+    <file>assets/icons/icons8_Left_black.ico</file>
+    <file>assets/icons/icons8_Left_white.ico</file>
+    <file>assets/icons/icons8_Right_black.ico</file>
+    <file>assets/icons/icons8_Right_white.ico</file>
+    <file>assets/icons/microsoft_bing_search.ico</file>
+  </qresource>
 </RCC>

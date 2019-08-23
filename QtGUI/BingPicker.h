@@ -7,14 +7,14 @@
 class BingPicker: public QObject {
 	Q_OBJECT
 public:
-	void download() {
-		parseURL();
-	}
+	void download(const int daysAgo);
 
 	~BingPicker();
 
 	QString Filename() const { return filename; }
 	QString FilePath() const { return filepath; }
+	QString CopyRight() const { return copyright; }
+	const QByteArray raw_data() const { return bytes; }
 
 signals:
 	void already_exist();
@@ -23,13 +23,13 @@ signals:
 	void network_error(QNetworkReply::NetworkError);
 
 private:
-	QString filename, filepath;
+	QString filename, filepath, copyright;
+	QByteArray bytes;
+
 	const QString BING = "https://cn.bing.com";
 	HttpGetter* img_dld = nullptr;
 
-	void parseURL();
-	
-
-	static std::tuple<QString, QString> regurl(QString httpD);
+	static QString url2name(QString httpD);
+	std::tuple<QString, QString> BingAPI(const int daysAgo);
 };
 
